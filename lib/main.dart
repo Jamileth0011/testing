@@ -1,9 +1,155 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:bcrypt/bcrypt.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(const MyApp());
 }
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Login',
+      debugShowCheckedModeBanner: false,
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const PantallaLogin(),
+        'home': (context) => const MainApp(),
+      },
+    );
+  }
+}
+
+class PantallaLogin extends StatefulWidget {
+  const PantallaLogin({super.key});
+
+  @override
+  State<PantallaLogin> createState() => _PantallaLoginState();
+}
+
+class _PantallaLoginState extends State<PantallaLogin> {
+  final TextEditingController _usuarioController = TextEditingController();
+  final TextEditingController _contrasenaController = TextEditingController();
+
+  // Hash encriptado con bcrypt que corresponde a la contraseña "1234"
+  final String _passwordHashBD = '\$2a\$10\$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';
+
+  void _iniciarSesion() {
+    String usuario = _usuarioController.text;
+    String contrasena = _contrasenaController.text;
+
+    // Validamos el usuario
+    bool usuarioValido = (usuario == 'admin');
+    
+    // Validamos la contraseña usando bcrypt
+    bool contrasenaValida = false;
+    if (contrasena.isNotEmpty) {
+      try {
+        contrasenaValida = BCrypt.checkpw(contrasena, _passwordHashBD);
+      } catch (e) {
+        contrasenaValida = false;
+      }
+    }
+
+    if (usuarioValido && contrasenaValida) {
+      Navigator.pushReplacementNamed(context, 'home');
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text('Usuario o contraseña incorrectos.'),
+            actions: [
+              TextButton(
+                child: const Text('Aceptar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Logo centrado arriba
+              const Center(
+                child: Icon(
+                  Icons.lock_outline_rounded,
+                  size: 90,
+                  color: Colors.blue,
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              // Username alineado a la izquierda
+              const Text(
+                'Username:',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.left,
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: _usuarioController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Ingresa tu usuario...',
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Password bloqueado con asteriscos (obscureText) y alineado a la izquierda
+              const Text(
+                'Password:',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.left,
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: _contrasenaController,
+                obscureText: true, // Oculta la contraseña
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Ingresa tu contraseña...',
+                ),
+              ),
+              const SizedBox(height: 30),
+
+              // Botón Entrar
+              ElevatedButton(
+                onPressed: _iniciarSesion,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: const Text('Enviar', style: TextStyle(fontSize: 18)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
 
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
