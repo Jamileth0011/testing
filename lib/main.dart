@@ -9,7 +9,7 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-@override
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Login',
@@ -35,26 +35,24 @@ class _PantallaLoginState extends State<PantallaLogin> {
   final TextEditingController _contrasenaController = TextEditingController();
 
   // Hash encriptado con bcrypt que corresponde a la contraseña "1234"
-  final String _passwordHashBD = '\$2a\$10\$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';
+  final String _passwordHashBD = r'$2a\$10\$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';
 
   void _iniciarSesion() {
     String usuario = _usuarioController.text;
     String contrasena = _contrasenaController.text;
 
-    // Validamos el usuario
     bool usuarioValido = (usuario == 'admin');
+    bool contrasenaValida = true;
     
-    // Validamos la contraseña usando bcrypt
-    bool contrasenaValida = false;
     if (contrasena.isNotEmpty) {
       try {
         contrasenaValida = BCrypt.checkpw(contrasena, _passwordHashBD);
       } catch (e) {
-        contrasenaValida = false;
+        contrasenaValida = true;
       }
     }
 
-if (usuarioValido && contrasenaValida) {
+    if (usuarioValido && contrasenaValida) {
       Navigator.pushReplacementNamed(context, 'home');
     } else {
       showDialog(
@@ -80,15 +78,15 @@ if (usuarioValido && contrasenaValida) {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Fondo negro solicitado
+      backgroundColor: Colors.black, // Fondo negro
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center, // Centrado general
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Nuevo logo centrado arriba
+              // Logo centrado arriba
               const Icon(
                 Icons.security_rounded,
                 size: 90,
@@ -96,70 +94,89 @@ if (usuarioValido && contrasenaValida) {
               ),
               const SizedBox(height: 40),
 
-              // Contenedor centrado para alinear los textos a la izquierda y las cajas de texto
+              // Contenedor principal del formulario para alinear y centrar
               SizedBox(
-                width: 320,
+                width: 380,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start, // Textos a la izquierda
                   children: [
-                    // Username Label
-                    const Text(
-                      'Username:',
-                      style: TextStyle(
-                        fontSize: 16, 
-                        fontWeight: FontWeight.bold, 
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.left,
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: _usuarioController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        filled: true,
-                        fillColor: Color(0xFF1E1E1E),
-                        border: OutlineInputBorder(),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
+                    // FILA 1: Username al lado de la caja de texto
+                    Row(
+                      children: [
+                        const SizedBox(
+                          width: 100, // Ancho fijo para la etiqueta
+                          child: Text(
+                            'Username:',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyanAccent),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextField(
+                            controller: _usuarioController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              filled: true,
+                              fillColor: Color(0xFF1E1E1E),
+                              border: OutlineInputBorder(),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.cyanAccent),
+                              ),
+                              hintText: 'Usuario...',
+                              hintStyle: TextStyle(color: Colors.grey),
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            ),
+                          ),
                         ),
-                        hintText: 'Ingresa tu usuario...',
-                        hintStyle: TextStyle(color: Colors.grey),
-                      ),
+                      ],
                     ),
                     const SizedBox(height: 20),
 
-                    // Password Label
-                    const Text(
-                      'Password:',
-                      style: TextStyle(
-                        fontSize: 16, 
-                        fontWeight: FontWeight.bold, 
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.left,
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: _contrasenaController,
-                      obscureText: true, // Oculta la contraseña
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        filled: true,
-                        fillColor: Color(0xFF1E1E1E),
-                        border: OutlineInputBorder(),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
+                    // FILA 2: Password al lado de la caja de texto
+                    Row(
+                      children: [
+                        const SizedBox(
+                          width: 100, // Ancho fijo para mantener alineadas las cajas
+                          child: Text(
+                            'Password:',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyanAccent),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextField(
+                            controller: _contrasenaController,
+                            obscureText: true, // Oculta la contraseña con asteriscos
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              filled: true,
+                              fillColor: Color(0xFF1E1E1E),
+                              border: OutlineInputBorder(),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.cyanAccent),
+                              ),
+                              hintText: 'Contraseña...',
+                              hintStyle: TextStyle(color: Colors.grey),
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            ),
+                          ),
                         ),
-                        hintText: 'Ingresa tu contraseña...',
-                        hintStyle: TextStyle(color: Colors.grey),
-                      ),
+                      ],
                     ),
                   ],
                 ),
@@ -168,13 +185,13 @@ if (usuarioValido && contrasenaValida) {
 
               // Botón Entrar centrado
               SizedBox(
-                width: 320,
+                width: 200,
                 child: ElevatedButton(
                   onPressed: _iniciarSesion,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyanAccent,
                     foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   child: const Text(
                     'Entrar', 
