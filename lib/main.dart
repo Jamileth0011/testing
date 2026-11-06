@@ -33,52 +33,129 @@ class PantallaLogin extends StatefulWidget {
 class _PantallaLoginState extends State<PantallaLogin> {
   final TextEditingController _usuarioController = TextEditingController();
   final TextEditingController _contrasenaController = TextEditingController();
+  final TextEditingController _confirmarController = TextEditingController();
 
-  // Hash encriptado con bcrypt que corresponde a la contraseña "1234"
-  final String _passwordHashBD = r'$2a\$10\$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';
+  // Bandera para cambiar entre modo Login (false) y modo Registro (true)
+  bool _esRegistro = false;
 
-  void _iniciarSesion() {
-    String usuario = _usuarioController.text;
+  // Base de datos simulada estructurada en formato JSON (Lista de Mapas)
+  // Incluye por defecto al usuario 'admin' con su respectivo hash de bcrypt para la contraseña "1234"[cite: 4]
+  final List<Map<String, dynamic>> _baseDatosUsuarios = [
+    {
+      "username": "admin",
+      "passwordHash": r'$2a$12$vFbh6xlxYtVa0z5gLeV1BuCnq2Fs75lQek8vCntQ/eqpb8G7i3b6y',
+    }
+  ];
+
+  void _procesarAccion() {
+    String usuario = _usuarioController.text.trim();
     String contrasena = _contrasenaController.text;
 
-    bool usuarioValido = (usuario == 'admin');
-    bool contrasenaValida = true;
-    
-    if (contrasena.isNotEmpty) {
+    if (_esRegistro) {
+      // ==========================================
+      // LÓGICA DE REGISTRO EN FORMATO JSON
+      // ==========================================
+      String confirmar = _confirmarController.text;
+
+      if (usuario.isEmpty || contrasena.isEmpty || confirmar.isEmpty) {
+        _mostrarAlerta('Error', 'Por favor llena todos los campos.');
+        return;
+      }
+
+      if (contrasena != confirmar) {
+        _mostrarAlerta('Error', 'Las contraseñas no coinciden.');
+        return;
+      }
+
+      // Verificamos si el usuario ya existe en nuestra lista JSON
+      bool existe = _baseDatosUsuarios.any((u) => u["username"] == usuario);
+      if (existe) {
+        _mostrarAlerta('Error', 'El usuario ya está registrado.');
+        return;
+      }
+
+      // Encriptamos la contraseña con bcrypt para cumplir con la seguridad del proyecto
+      String hashedPassword = BCrypt.hashpw(contrasena, BCrypt.gensalt());
+
+      // Creamos el nuevo registro estructurado en formato JSON
+      Map<String, dynamic> nuevoUsuarioJson = {
+        "username": usuario,
+        "passwordHash": hashedPassword,
+      };
+
+      // Guardamos el JSON en la base de datos simulada
+      _baseDatosUsuarios.add(nuevoUsuarioJson);
+
+      _mostrarAlerta('Éxito', '¡Registro exitoso! Ahora inicia sesión.');
+
+      // Limpiamos los campos y volvemos automáticamente al modo Login
+      setState(() {
+        _esRegistro = false;
+        _usuarioController.clear();
+        _contrasenaController.clear();
+        _confirmarController.clear();
+      });
+
+    } else {
+      // ==========================================
+      // LÓGICA DE INICIO DE SESIÓN (LOGIN)
+      // ==========================================
+      if (usuario.isEmpty || contrasena.isEmpty) {
+        _mostrarAlerta('Error', 'Ingresa usuario y contraseña.');
+        return;
+      }
+
+      Map<String, dynamic>? usuarioEncontrado;
       try {
-        contrasenaValida = BCrypt.checkpw(contrasena, _passwordHashBD);
+        usuarioEncontrado = _baseDatosUsuarios.firstWhere(
+          (u) => u["username"] == usuario,
+        );
       } catch (e) {
-        contrasenaValida = true;
+        usuarioEncontrado = null;
+      }
+
+      bool credencialesValidas = false;
+      if (usuarioEncontrado != null) {
+        String hashAlmacenado = usuarioEncontrado["passwordHash"];
+        try {
+          credencialesValidas = BCrypt.checkpw(contrasena, hashAlmacenado);
+        } catch (e) {
+          credencialesValidas = false;
+        }
+      }
+
+      if (credencialesValidas) {
+        Navigator.pushReplacementNamed(context, 'home');
+      } else {
+        _mostrarAlerta('Error', 'Usuario o contraseña incorrectos.');
       }
     }
+  }
 
-    if (usuarioValido && contrasenaValida) {
-      Navigator.pushReplacementNamed(context, 'home');
-    } else {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: const Text('Usuario o contraseña incorrectos.'),
-            actions: [
-              TextButton(
-                child: const Text('Aceptar'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
+  void _mostrarAlerta(String titulo, String mensaje) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(titulo),
+          content: Text(mensaje),
+          actions: [
+            TextButton(
+              child: const Text('Aceptar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Fondo negro
+      backgroundColor: Colors.black, 
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -86,7 +163,6 @@ class _PantallaLoginState extends State<PantallaLogin> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Logo centrado arriba
               const Icon(
                 Icons.security_rounded,
                 size: 90,
@@ -94,16 +170,15 @@ class _PantallaLoginState extends State<PantallaLogin> {
               ),
               const SizedBox(height: 40),
 
-              // Contenedor principal del formulario para alinear y centrar
               SizedBox(
                 width: 380,
                 child: Column(
                   children: [
-                    // FILA 1: Username al lado de la caja de texto
+                    // Campo Usuario
                     Row(
                       children: [
                         const SizedBox(
-                          width: 100, // Ancho fijo para la etiqueta
+                          width: 100, 
                           child: Text(
                             'Username:',
                             style: TextStyle(
@@ -139,11 +214,11 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     ),
                     const SizedBox(height: 20),
 
-                    // FILA 2: Password al lado de la caja de texto
+                    // Campo Contraseña
                     Row(
                       children: [
                         const SizedBox(
-                          width: 100, // Ancho fijo para mantener alineadas las cajas
+                          width: 100, 
                           child: Text(
                             'Password:',
                             style: TextStyle(
@@ -157,7 +232,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                         Expanded(
                           child: TextField(
                             controller: _contrasenaController,
-                            obscureText: true, // Oculta la contraseña con asteriscos
+                            obscureText: true, 
                             style: const TextStyle(color: Colors.white),
                             decoration: const InputDecoration(
                               filled: true,
@@ -178,25 +253,84 @@ class _PantallaLoginState extends State<PantallaLogin> {
                         ),
                       ],
                     ),
+
+                    // Campo opcional: Confirmar Contraseña (Solo visible en modo Registro)
+                    if (_esRegistro) ...[
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          const SizedBox(
+                            width: 100,
+                            child: Text(
+                              'Confirmar:',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: _confirmarController,
+                              obscureText: true,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: const InputDecoration(
+                                filled: true,
+                                fillColor: Color(0xFF1E1E1E),
+                                border: OutlineInputBorder(),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.grey),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.cyanAccent),
+                                ),
+                                hintText: 'Repite contraseña...',
+                                hintStyle: TextStyle(color: Colors.grey),
+                                isDense: true,
+                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
               const SizedBox(height: 35),
 
-              // Botón Entrar centrado
+              // Botón dinámico principal (Entrar / Registrar)
               SizedBox(
                 width: 200,
                 child: ElevatedButton(
-                  onPressed: _iniciarSesion,
+                  onPressed: _procesarAccion,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyanAccent,
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text(
-                    'Entrar', 
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  child: Text(
+                    _esRegistro ? 'Registrar' : 'Entrar', 
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Botón inferior para cambiar entre el Login y el Registro en la misma interfaz
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _esRegistro = !_esRegistro;
+                  });
+                },
+                child: Text(
+                  _esRegistro 
+                    ? '¿Ya tienes cuenta? Inicia sesión' 
+                    : '¿No tienes cuenta? Regístrate',
+                  style: const TextStyle(color: Colors.cyanAccent, fontSize: 14),
                 ),
               ),
             ],
@@ -209,7 +343,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
 
 
 
-
+///principal
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
 
@@ -272,6 +406,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   ];
 
   int indice = 0;
+
+  // ignore: strict_top_level_inference
+  get constraints => null;
 
   void cambiarMensaje() {
     setState(() {
@@ -339,6 +476,8 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   Widget _buildContenido(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+
+      
         return SingleChildScrollView(
           child: ConstrainedBox( constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Center(
@@ -475,11 +614,10 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                   ],
                 ),
               ),
-            ),
+           ),
           ),
         );
-      },
-    );
+   } );
   }
 }
 
@@ -525,3 +663,4 @@ class SegundaPantalla extends StatelessWidget {
     );
   }
 }
+
