@@ -342,6 +342,161 @@ class _PantallaLoginState extends State<PantallaLogin> {
 }
 
 
+// =====================================================================
+// PANTALLA PRINCIPAL CON MENÚ Y CILINDRO FLOTANTE EN SEGUNDO PLANO
+// =====================================================================
+class MainApp extends StatefulWidget {
+  const MainApp({super.key});
+
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
+  int _currentIndex = 0;
+  late AnimationController _cylinderController;
+
+  @override
+  void initState() {
+    super.initState();
+    _cylinderController = AnimationController(
+      duration: const Duration(seconds: 8),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _cylinderController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Widget> pages = [
+      const HomeDashboardPage(),
+      const SeccionPruebasPage(),
+      const SegundaPantalla(),
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Panel Principal'),
+        backgroundColor: Colors.cyan,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.cyan),
+              child: Text(
+                'Menú de Navegación',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Inicio'),
+              onTap: () {
+                setState(() => _currentIndex = 0);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.build),
+              title: const Text('Sección de Pruebas (Extras)'),
+              onTap: () {
+                setState(() => _currentIndex = 1);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.star),
+              title: const Text('Segunda Pantalla'),
+              onTap: () {
+                setState(() => _currentIndex = 2);
+                Navigator.pop(context);
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.red)),
+              onTap: () => Navigator.pushReplacementNamed(context, '/'),
+            ),
+          ],
+        ),
+      ),
+      body: Stack(
+        children: [
+          pages[_currentIndex],
+          Positioned(
+            top: 15,
+            right: 15,
+            child: AnimatedBuilder(
+              animation: _cylinderController,
+              builder: (context, child) {
+                return Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.identity()
+                    ..setEntry(3, 2, 0.002)
+                    ..rotateY(_cylinderController.value * 2 * 3.14159),
+                  child: Container(
+                    width: 70,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Colors.redAccent, Colors.yellowAccent, Colors.greenAccent, Colors.cyanAccent, Colors.purpleAccent],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                      borderRadius: BorderRadius.circular(35),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 6, offset: const Offset(0, 3))
+                      ],
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        const Text(
+                          "CILINDRO",
+                          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.black),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 6,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(color: Colors.black, shape: BoxShape.circle),
+                            child: Text(
+                              "${(_cylinderController.value * 100).toInt()}",
+                              style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+          BottomNavigationBarItem(icon: Icon(Icons.build), label: 'Pruebas'),
+          BottomNavigationBarItem(icon: Icon(Icons.star), label: 'Extra'),
+        ],
+      ),
+    );
+  }
+}
+
 
 ///principal
 class MainApp extends StatefulWidget {
