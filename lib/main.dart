@@ -39,8 +39,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
 
   bool _esRegistro = false;
 
-  // Base de datos simulada en formato JSON
-  final List _baseDatosUsuarios = [
+  final List<Map<String, dynamic>> _baseDatosUsuarios = [
     {
       "username": "admin",
       "passwordHash": r'$2a$12$vFbh6xlxYtVa0z5gLeV1BuCnq2Fs75lQek8vCntQ/eqpb8G7i3b6y',
@@ -319,7 +318,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
 }
 
 // =====================================================================
-// PANTALLA PRINCIPAL (GESTIONA EL MENÚ Y EL CILINDRO EN SEGUNDO PLANO)
+// PANTALLA PRINCIPAL (GESTIONA EL MENÚ Y LA ANIMACIÓN GLOBAL MUY LENTA)
 // =====================================================================
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
@@ -330,27 +329,28 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
   int _currentIndex = 0;
-  late AnimationController _cylinderController;
+  late AnimationController _circleController;
 
   @override
   void initState() {
     super.initState();
-    _cylinderController = AnimationController(
-      duration: const Duration(seconds: 8),
+    // Duración de 150 segundos para que sea MUY LENTO y llegue hasta 1000 gradualmente
+    _circleController = AnimationController(
+      duration: const Duration(seconds: 150),
       vsync: this,
     )..repeat();
   }
 
   @override
   void dispose() {
-    _cylinderController.dispose();
+    _circleController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
-      HomeDashboardPage(cylinderController: _cylinderController),
+      HomeDashboardPage(circleController: _circleController),
       const SeccionPruebasPage(),
       const SegundaPantalla(),
     ];
@@ -373,7 +373,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
             ),
             ListTile(
               leading: const Icon(Icons.home),
-              title: const Text('Inicio (Cilindro)'),
+              title: const Text('Inicio (Círculo Giratorio)'),
               onTap: () {
                 setState(() => _currentIndex = 0);
                 Navigator.pop(context);
@@ -425,12 +425,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
 }
 
 // =====================================================================
-// PÁGINA DE INICIO (CON EL CILINDRO GIRATORIO Y CONTADOR EN LA ESQUINA)
+// PÁGINA DE INICIO (CÍRCULO CENTRAL CON IMAGEN Y CONTADOR HASTA 1000)
 // =====================================================================
 class HomeDashboardPage extends StatelessWidget {
-  final AnimationController cylinderController;
+  final AnimationController circleController;
 
-  const HomeDashboardPage({super.key, required this.cylinderController});
+  const HomeDashboardPage({super.key, required this.circleController});
 
   @override
   Widget build(BuildContext context) {
@@ -438,72 +438,67 @@ class HomeDashboardPage extends StatelessWidget {
       backgroundColor: const Color.fromARGB(255, 80, 217, 241),
       body: Stack(
         children: [
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '¡Bienvenido a la Página Principal!',
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 15),
-                  Text(
-                    'Aquí se encuentra el cilindro giratorio de colores. Su animación y contador continúan funcionando en segundo plano si te pasas a las otras páginas del menú.',
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            top: 20,
-            right: 20,
+          // CÍRCULO PERFECTO EN EL MEDIO QUE GIRA LENTAMENTE CON LA IMAGEN ADENTRO
+          Center(
             child: AnimatedBuilder(
-              animation: cylinderController,
+              animation: circleController,
               builder: (context, child) {
-                return Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.identity()
-                    ..setEntry(3, 2, 0.002)
-                    ..rotateY(cylinderController.value * 2 * 3.14159),
+                return Transform.rotate(
+                  angle: circleController.value * 2 * 3.14159, // Rotación lenta continua
                   child: Container(
-                    width: 70,
-                    height: 100,
+                    width: 220,
+                    height: 220,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Colors.redAccent, Colors.yellowAccent, Colors.greenAccent, Colors.cyanAccent, Colors.purpleAccent],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                      borderRadius: BorderRadius.circular(35),
+                      shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: Colors.black, blurRadius: 6, offset: const Offset(0, 3))
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
                       ],
                     ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        const Text(
-                          "CILINDRO",
-                          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.black),
-                        ),
-                        Positioned(
-                          top: 4,
-                          right: 6,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(color: Colors.black, shape: BoxShape.circle),
+                    child: ClipOval(
+                      child: Image.asset(
+                        'asset/images/31a72afda250825d993400c3ef28c55c.gif',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.white,
+                          child: const Center(
                             child: Text(
-                              "${(cylinderController.value * 100).toInt()}",
-                              style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                              "Sin Imagen",
+                              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                             ),
                           ),
-                        )
-                      ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // CONTADOR GRANDE EN LA ESQUINA (HASTA 1000, LENTO Y PERSISTENTE)
+          Positioned(
+            top: 25,
+            right: 25,
+            child: AnimatedBuilder(
+              animation: circleController,
+              builder: (context, child) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.cyanAccent, width: 2),
+                  ),
+                  child: Text(
+                    "Contador: ${(circleController.value * 1000).toInt()}",
+                    style: const TextStyle(
+                      color: Colors.cyanAccent,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 );
@@ -672,3 +667,4 @@ class SegundaPantalla extends StatelessWidget {
     );
   }
 }
+
