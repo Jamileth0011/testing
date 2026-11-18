@@ -22,9 +22,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// PANTALLA DE LOGIN Y REGISTRO EN FORMATO JSON
-// =====================================================================
+//login y registro
 class PantallaLogin extends StatefulWidget {
   const PantallaLogin({super.key});
 
@@ -317,9 +315,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
   }
 }
 
-// =====================================================================
-// PANTALLA PRINCIPAL (GESTIONA EL MENÚ Y LA ANIMACIÓN GLOBAL MUY LENTA)
-// =====================================================================
+
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
 
@@ -333,13 +329,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
 
   @override
   void initState() {
-    super.initState();
-    // Duración de 150 segundos para que sea MUY LENTO y llegue hasta 1000 gradualmente
+    super.initState(); //ESTA ES QUE HACE BUCLE Y CONTROLA EL TIEMPO
     _circleController = AnimationController(
       duration: const Duration(seconds: 150),
       vsync: this,
     )..repeat();
-  }
+  } //Es donde empieza la animación
 
   @override
   void dispose() {
@@ -423,10 +418,8 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     );
   }
 }
-
-// =====================================================================
-// PÁGINA DE INICIO (CÍRCULO CENTRAL CON IMAGEN Y CONTADOR HASTA 1000)
-// =====================================================================
+///////////////////////////////////////////////////
+//circulo
 class HomeDashboardPage extends StatelessWidget {
   final AnimationController circleController;
 
@@ -438,13 +431,12 @@ class HomeDashboardPage extends StatelessWidget {
       backgroundColor: const Color.fromARGB(255, 80, 217, 241),
       body: Stack(
         children: [
-          // CÍRCULO PERFECTO EN EL MEDIO QUE GIRA LENTAMENTE CON LA IMAGEN ADENTRO
           Center(
             child: AnimatedBuilder(
               animation: circleController,
               builder: (context, child) {
                 return Transform.rotate(
-                  angle: circleController.value * 2 * 3.14159, // Rotación lenta continua
+                  angle: circleController.value * 2 * 3.14159, 
                   child: Container(
                     width: 220,
                     height: 220,
@@ -479,7 +471,6 @@ class HomeDashboardPage extends StatelessWidget {
             ),
           ),
 
-          // CONTADOR GRANDE EN LA ESQUINA (HASTA 1000, LENTO Y PERSISTENTE)
           Positioned(
             top: 25,
             right: 25,
@@ -511,9 +502,9 @@ class HomeDashboardPage extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// SECCIÓN DE PRUEBAS
-// =====================================================================
+//////
+
+
 class SeccionPruebasPage extends StatefulWidget {
   const SeccionPruebasPage({super.key});
 
@@ -642,9 +633,7 @@ class _SeccionPruebasPageState extends State<SeccionPruebasPage> {
   }
 }
 
-// =====================================================================
-// SEGUNDA PÁGINA SECUNDARIA
-// =====================================================================
+
 class SegundaPantalla extends StatelessWidget {
   const SegundaPantalla({super.key});
 
